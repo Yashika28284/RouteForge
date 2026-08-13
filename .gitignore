@@ -1,0 +1,59 @@
+# ---------------------------------------------------------------------------
+# RouteForge — root .gitignore (covers frontend, backend, optimize-service)
+# ---------------------------------------------------------------------------
+
+# --- Environment / secrets ---
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+
+# --- Node (frontend + backend) ---
+node_modules/
+dist/
+dist-ssr/
+build/
+*.tsbuildinfo
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-store/
+
+# Vite
+frontend/.vite/
+frontend/dist/
+
+# --- Python (optimize-service) ---
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# --- Editors / OS ---
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# --- Docker ---
+*.pid
+
+# --- Logs ---
+logs/
+*.log
+
+# --- Test / coverage output ---
+coverage/
+.nyc_output/
