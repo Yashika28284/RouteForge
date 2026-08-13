@@ -24,6 +24,26 @@ describe('computeOriginalOrderBaseline', () => {
   });
 });
 
+describe('computeOriginalOrderBaseline with service times', () => {
+  it('adds service time at each visited stop (not the depot) to total duration', () => {
+    // Regression test: baseline duration must include service time the
+    // same way the optimize-service solver does (tsp_solver.py adds
+    // service_times[from_node] on every departure), otherwise baseline
+    // vs. optimized time comparisons are not apples-to-apples and the
+    // reported time-improvement % is meaningless.
+    const serviceTimesSec = [0, 300, 600, 120]; // depot, stop1, stop2, stop3
+    const result = computeOriginalOrderBaseline(3, durationsSec, distancesMeters, serviceTimesSec);
+    const travelOnly = 10 + 90 + 95 + 20; // 0->1->2->3->0
+    const serviceOnly = 300 + 600 + 120; // service at 1, 2, 3 (not depot)
+    expect(result.totalDurationSec).toBe(travelOnly + serviceOnly);
+  });
+
+  it('defaults to zero service time when none is provided (backward compatible)', () => {
+    const result = computeOriginalOrderBaseline(3, durationsSec, distancesMeters);
+    expect(result.totalDurationSec).toBe(10 + 90 + 95 + 20);
+  });
+});
+
 describe('computeNearestNeighborBaseline', () => {
   it('always greedily picks the closest unvisited stop', () => {
     const result = computeNearestNeighborBaseline(3, durationsSec, distancesMeters);

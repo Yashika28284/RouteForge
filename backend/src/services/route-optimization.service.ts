@@ -104,8 +104,20 @@ export async function optimizeRoute(route: RouteRow): Promise<OptimizationRespon
     );
   }
 
-  const originalBaseline = computeOriginalOrderBaseline(stops.length, matrix.durationsSec, matrix.distancesMeters);
-  const nnBaseline = computeNearestNeighborBaseline(stops.length, matrix.durationsSec, matrix.distancesMeters);
+  // Node 0 is the depot (no service time); nodes 1..n are stops in order.
+  const serviceTimesSec = [0, ...stops.map((s) => s.service_duration_min * 60)];
+  const originalBaseline = computeOriginalOrderBaseline(
+    stops.length,
+    matrix.durationsSec,
+    matrix.distancesMeters,
+    serviceTimesSec
+  );
+  const nnBaseline = computeNearestNeighborBaseline(
+    stops.length,
+    matrix.durationsSec,
+    matrix.distancesMeters,
+    serviceTimesSec
+  );
   const baseline = nnBaseline.totalDurationSec < originalBaseline.totalDurationSec ? nnBaseline : originalBaseline;
   const baselineStrategy = baseline === nnBaseline ? 'NEAREST_NEIGHBOR' : 'ORIGINAL_ORDER';
 

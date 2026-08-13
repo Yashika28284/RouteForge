@@ -17,7 +17,8 @@ export interface BaselineResult {
 function evaluateSequence(
   sequence: number[],
   durationsSec: number[][],
-  distancesMeters: number[][]
+  distancesMeters: number[][],
+  serviceTimesSec: number[] = []
 ): BaselineResult {
   let totalDistanceMeters = 0;
   let totalDurationSec = 0;
@@ -26,6 +27,13 @@ function evaluateSequence(
     const to = sequence[i + 1];
     totalDistanceMeters += distancesMeters[from][to];
     totalDurationSec += durationsSec[from][to];
+    // Match the solver's convention: service time at the node being
+    // departed is added to cumulative duration (see optimize-service
+    // tsp_solver.py, which does the same). The depot (index 0) has no
+    // service time. Without this, "optimized" duration (which includes
+    // service time) is never comparable to baseline duration (which
+    // didn't), making the reported time improvement % meaningless.
+    totalDurationSec += serviceTimesSec[from] ?? 0;
   }
   return { sequence, totalDistanceMeters, totalDurationSec };
 }
@@ -34,16 +42,18 @@ function evaluateSequence(
 export function computeOriginalOrderBaseline(
   numStops: number,
   durationsSec: number[][],
-  distancesMeters: number[][]
+  distancesMeters: number[][],
+  serviceTimesSec: number[] = []
 ): BaselineResult {
   const sequence = [0, ...Array.from({ length: numStops }, (_, i) => i + 1), 0];
-  return evaluateSequence(sequence, durationsSec, distancesMeters);
+  return evaluateSequence(sequence, durationsSec, distancesMeters, serviceTimesSec);
 }
 
 export function computeNearestNeighborBaseline(
   numStops: number,
   durationsSec: number[][],
-  distancesMeters: number[][]
+  distancesMeters: number[][],
+  serviceTimesSec: number[] = []
 ): BaselineResult {
   const unvisited = new Set(Array.from({ length: numStops }, (_, i) => i + 1));
   const sequence: number[] = [0];
@@ -64,5 +74,5 @@ export function computeNearestNeighborBaseline(
     current = nearest;
   }
   sequence.push(0);
-  return evaluateSequence(sequence, durationsSec, distancesMeters);
+  return evaluateSequence(sequence, durationsSec, distancesMeters, serviceTimesSec);
 }
