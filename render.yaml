@@ -1,0 +1,53 @@
+services:
+  # Python/OR-Tools solver — internal only, no public URL. Only the
+  # backend talks to it, over Render's private network.
+  - type: pserv
+    name: routeforge-optimize-service
+    runtime: docker
+    dockerfilePath: ./optimize-service/Dockerfile
+    dockerContext: ./optimize-service
+    plan: starter
+    healthCheckPath: /health
+    envVars:
+      - key: PORT
+        value: 8000
+
+  # Fastify API — public.
+  - type: web
+    name: routeforge-backend
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: starter
+    healthCheckPath: /api/health
+    preDeployCommand: node dist/db/migrate.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # Paste your Neon connection string here (Dashboard -> Connect,
+      # "Pooled connection" recommended). Must be a postgresql:// URL.
+      - key: DATABASE_URL
+        sync: false
+      - key: POSTGRES_SSL
+        value: "true"
+      # Paste your Upstash Redis connection string here (rediss://...).
+      - key: REDIS_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 1d
+      # Update this to your deployed Vercel URL after the frontend is live.
+      - key: CORS_ORIGIN
+        sync: false
+      # Render's internal DNS for a private service is
+      # http://<service-name>:<port> — deterministic from the pserv name
+      # and PORT above, no need for a service reference.
+      - key: OPTIMIZE_SERVICE_URL
+        value: http://routeforge-optimize-service:8000
+      - key: OSRM_BASE_URL
+        value: https://router.project-osrm.org
+      - key: NOMINATIM_BASE_URL
+        value: https://nominatim.openstreetmap.org
+      - key: NOMINATIM_USER_AGENT
+        value: routeforge-app
