@@ -7,7 +7,6 @@ services:
     dockerfilePath: ./optimize-service/Dockerfile
     dockerContext: ./optimize-service
     plan: starter
-    healthCheckPath: /health
     envVars:
       - key: PORT
         value: 8000
