@@ -9,7 +9,16 @@ from fastapi import FastAPI
 from app.schemas import SolveRequest, SolveResponse
 from app.solver.tsp_solver import solve
 
-app = FastAPI(title="routeforge-optimize-service", version="1.0.0")
+# Internal-only service (private on Render, not published to the host in
+# Docker Compose) — the interactive docs/schema endpoints have no audience
+# and are disabled rather than left on by FastAPI's default.
+app = FastAPI(
+    title="routeforge-optimize-service",
+    version="1.0.0",
+    docs_url=None,
+    redoc_url=None,
+    openapi_url=None,
+)
 
 
 @app.get("/health")

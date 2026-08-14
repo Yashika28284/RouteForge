@@ -40,3 +40,22 @@ def test_solve_endpoint_rejects_mismatched_matrix_sizes():
     }
     resp = client.post("/solve", json=payload)
     assert resp.status_code == 422
+
+
+def test_solve_endpoint_rejects_matrix_over_max_size():
+    n = 51  # over MAX_MATRIX_SIZE (50)
+    row = [1.0] * n
+    payload = {
+        "durationsSec": [row for _ in range(n)],
+        "distancesMeters": [row for _ in range(n)],
+        "objective": "TIME",
+    }
+    resp = client.post("/solve", json=payload)
+    assert resp.status_code == 422
+
+
+def test_docs_endpoints_are_disabled():
+    # Internal-only service — no reason to expose interactive API docs.
+    assert client.get("/docs").status_code == 404
+    assert client.get("/redoc").status_code == 404
+    assert client.get("/openapi.json").status_code == 404
