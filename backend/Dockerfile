@@ -17,4 +17,9 @@ COPY --from=build /app/src/db/schema.sql ./dist/db/schema.sql
 RUN chown -R node:node /app
 USER node
 EXPOSE 4000
-CMD ["node", "dist/server.js"]
+# Render's free tier doesn't support preDeployCommand, so the migration
+# runs here instead, right before the server starts on every boot.
+# schema.sql is idempotent (CREATE TABLE IF NOT EXISTS / EXCEPTION WHEN
+# duplicate_object), so re-running it on every restart is a no-op once
+# the schema is already applied.
+CMD ["sh", "-c", "node dist/db/migrate.js && node dist/server.js"]
