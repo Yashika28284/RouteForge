@@ -37,8 +37,16 @@ services:
         generateValue: true
       - key: JWT_EXPIRES_IN
         value: 1d
-      # Update this to your deployed Vercel URL after the frontend is live.
+      # Update this to your deployed Vercel URL after the frontend is live,
+      # e.g. https://routeforge.vercel.app (comma-separate multiple exact
+      # origins if needed; no trailing slash).
       - key: CORS_ORIGIN
+        sync: false
+      # Optional — only needed if you want Vercel preview-deploy URLs to
+      # work against this backend too. Leave blank to allow only the exact
+      # origin(s) in CORS_ORIGIN above. See .env.example for the pattern
+      # and why a broad wildcard is unsafe here.
+      - key: CORS_ORIGIN_REGEX
         sync: false
       # Render's internal DNS for a private service is
       # http://<service-name>:<port> — deterministic from the pserv name

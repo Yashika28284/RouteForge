@@ -1,11 +1,16 @@
 import { Pool } from 'pg';
 import { env } from '../config/env';
 
-// Managed providers (Neon, RDS, etc.) terminate with a cert that Node's
-// default CA bundle usually can't verify chain-of-trust for; rejectUnauthorized:
-// false keeps the connection encrypted without requiring the provider's CA
-// bundle. Fine for this app's threat model; local Docker Postgres has no SSL.
-const ssl = env.POSTGRES_SSL ? { rejectUnauthorized: false } : undefined;
+// Managed providers (Neon, RDS, etc.) use certs from publicly trusted CAs,
+// which Node's default trust store already verifies — so full verification
+// (rejectUnauthorized: true) works out of the box and is the secure default.
+// POSTGRES_SSL_INSECURE is an explicit escape hatch for providers with a
+// self-signed/private cert chain; it disables verification (still
+// encrypted, but no longer authenticated) so it should only be used
+// deliberately, never as a default.
+const ssl = env.POSTGRES_SSL
+  ? { rejectUnauthorized: !env.POSTGRES_SSL_INSECURE }
+  : undefined;
 
 export const pool = env.DATABASE_URL
   ? new Pool({

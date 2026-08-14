@@ -1,4 +1,5 @@
 import { FastifyInstance } from 'fastify';
+import rateLimit from '@fastify/rate-limit';
 import * as authController from '../controllers/auth.controller';
 import * as routeController from '../controllers/route.controller';
 import * as stopController from '../controllers/stop.controller';
@@ -10,9 +11,15 @@ export async function registerRoutes(app: FastifyInstance) {
   app.get('/api/health', healthController.health);
   app.get('/api/health/ready', healthController.readiness);
 
-  app.post('/api/auth/register', authController.register);
-  app.post('/api/auth/login', authController.login);
-  app.post('/api/auth/logout', authController.logout);
+  // Tighter limit on auth endpoints specifically — the global 100/min is
+  // too loose to meaningfully slow down credential-stuffing / password
+  // guessing against login.
+  app.register(async (authApp) => {
+    authApp.register(rateLimit, { max: 10, timeWindow: '1 minute' });
+    authApp.post('/api/auth/register', authController.register);
+    authApp.post('/api/auth/login', authController.login);
+    authApp.post('/api/auth/logout', authController.logout);
+  });
 
   app.get('/api/geocode', geocodeController.geocodeHandler);
 

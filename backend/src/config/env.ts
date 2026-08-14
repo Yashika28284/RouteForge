@@ -4,7 +4,11 @@ import { z } from 'zod';
 const EnvSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   PORT: z.coerce.number().default(4000),
+  // Comma-separated list of exact allowed origins.
   CORS_ORIGIN: z.string().default('http://localhost:5173'),
+  // Optional regex tested against the request origin, e.g. for Vercel
+  // preview URLs. See src/config/cors.ts for guidance on scoping it safely.
+  CORS_ORIGIN_REGEX: z.string().optional(),
 
   // Either DATABASE_URL (e.g. Neon's connection string) or the discrete
   // POSTGRES_* vars must be provided — see the refine() below.
@@ -16,6 +20,11 @@ const EnvSchema = z.object({
   POSTGRES_PASSWORD: z.string().optional(),
   // Managed Postgres (Neon, RDS, etc.) requires SSL; local Docker Postgres doesn't.
   POSTGRES_SSL: z
+    .enum(['true', 'false'])
+    .default('false')
+    .transform((v) => v === 'true'),
+  // Escape hatch only — see src/db/pool.ts. Leave false/unset for Neon.
+  POSTGRES_SSL_INSECURE: z
     .enum(['true', 'false'])
     .default('false')
     .transform((v) => v === 'true'),
