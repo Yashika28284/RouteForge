@@ -158,6 +158,11 @@ What's already handled for you:
   own, so there's no reason to loosen the CSP).
 - **Containers**: both the backend and optimize-service Docker images run
   as a non-root user.
+- **Internal solver service**: the optimize-service (Python/OR-Tools)
+  rejects matrices above a generous size bound as a backstop against a
+  pathological payload tying up the solver, and has its FastAPI
+  interactive docs (`/docs`, `/redoc`, `/openapi.json`) disabled — it's
+  private-network-only with no audience for them.
 - **Error responses**: the existing centralized error handler never leaks
   stack traces (unchanged from before, just worth knowing it's there).
 
